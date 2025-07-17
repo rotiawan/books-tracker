@@ -72,9 +72,9 @@ export default function BooksPage() {
 
   return (
     <div className="container mx-auto p-8">
-      <h1 className="text-4xl font-bold mb-8 text-gray-900">My Book Tracker</h1>
+      <h1 className="text-4xl font-bold mb-8 text-gray-100">My Book Tracker</h1>
 
-      <h2 className="text-3xl font-semibold mb-6 text-gray-900">Bookshelf</h2>
+     <h2 className="text-3xl font-semibold mb-6 text-gray-200">Bookshelf</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         
         {/* Menampilkan setiap kartu buku */}
