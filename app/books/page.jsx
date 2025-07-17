@@ -8,6 +8,7 @@ export default function BooksPage() {
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingBook, setEditingBook] = useState(null);
 
   const fetchBooks = async () => {
     const response = await fetch('/api/books');
@@ -22,18 +23,25 @@ export default function BooksPage() {
   //fungsi handleSubmit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch('/api/books', {
-      method: 'POST',
+
+    const url = editingBook
+      ? `/api/books/${editingBook.id}` // Jika mengedit, gunakan URL dengan ID
+      : '/api/books'; // Jika menambah, gunakan URL biasa
+
+    const method = editingBook ? 'PATCH' : 'POST'; // Sesuaikan metode HTTP
+
+    await fetch(url, {
+      method: method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, author }),
     });
 
-    if (response.ok) {
-      setTitle('');
-      setAuthor('');
-      setIsModalOpen(false); // <-- baris ini untuk menutup modal
-      fetchBooks();
-    }
+    // Reset semua state setelah selesai
+    setTitle('');
+    setAuthor('');
+    setEditingBook(null);
+    setIsModalOpen(false);
+    fetchBooks(); // Ambil ulang data terbaru
   };
 
   const handleDelete = async (id) => {
@@ -41,6 +49,13 @@ export default function BooksPage() {
       await fetch(`/api/books/${id}`, { method: 'DELETE' });
       fetchBooks();
     }
+  };
+
+  const handleEditClick = (book) => {
+    setEditingBook(book); // Simpan data buku yang akan diedit
+    setTitle(book.title); // Isi form dengan judul yang ada
+    setAuthor(book.author); // Isi form dengan penulis yang ada
+    setIsModalOpen(true); // Buka modal
   };
 
   return (
@@ -60,7 +75,7 @@ export default function BooksPage() {
   
               <p className="text-gray-600 mt-1">by {book.author}</p>
               <div className="mt-4 flex gap-2">
-                <button className="bg-yellow-500 text-white px-4 py-1 rounded hover:bg-yellow-600 text-sm">Edit</button>
+                <button onClick={() => handleEditClick(book)} className="bg-yellow-500 text-white px-4 py-1 rounded hover:bg-yellow-600 text-sm">Edit</button>
                 <button onClick={() => handleDelete(book.id)} className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 text-sm">Delete</button>
               </div>
             </div>
@@ -77,49 +92,30 @@ export default function BooksPage() {
         </div>
       </div>
 
-      {/* MODAL UNTUK FORM TAMBAH BUKU */ }
-      {
-        isModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
-              <form onSubmit={handleSubmit}>
-                {/* Tambahkan kelas text-gray-900 di sini */}
-                <h2 className="text-2xl font-semibold mb-6 text-gray-900">
-                  Add a New Book
-                </h2>
-                <div className="space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    required
-                    // Tambahkan kelas border-gray-300, text-gray-900, dan placeholder-gray-500
-                    className="w-full p-3 border border-gray-300 text-gray-900 placeholder-gray-500 rounded-md"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Author"
-                    value={author}
-                    onChange={(e) => setAuthor(e.target.value)}
-                    required
-                    // Tambahkan kelas yang sama di sini
-                    className="w-full p-3 border border-gray-300 text-gray-900 placeholder-gray-500 rounded-md"
-                  />
-                </div>
-                <div className="mt-6 flex justify-end gap-4">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2 rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300">
-                    Cancel
-                  </button>
-                  <button type="submit" className="px-6 py-2 rounded-md text-white bg-blue-500 hover:bg-blue-600">
-                    Add Book
-                  </button>
-                </div>
-              </form>
+          {/* MODAL UNTUK FORM TAMBAH BUKU */}
+          {isModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
+                <form onSubmit={handleSubmit}>
+                  {/* Judul modal dinamis */}
+                  <h2 className="text-2xl font-semibold mb-6 text-gray-900">
+                    {editingBook ? 'Edit Book' : 'Add a New Book'}
+                  </h2>
+                  {/* ... sisa input form sama ... */}
+                  {/* ... */}
+                  <div className="mt-6 flex justify-end gap-4">
+                    <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2 rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300">
+                      Cancel
+                    </button>
+                    {/* Teks tombol dinamis */}
+                    <button type="submit" className="px-6 py-2 rounded-md text-white bg-blue-500 hover:bg-blue-600">
+                      {editingBook ? 'Save Changes' : 'Add Book'}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
-          </div>
-        )
-      }
+          )}
     </div>
   );
 }
